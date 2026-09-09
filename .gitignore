@@ -1,0 +1,8 @@
+/vendor/
+.phpunit.result.cache
+.phpstan.cache
+coverage/
+.env
+.env.*
+!.env.example
+composer.phar
