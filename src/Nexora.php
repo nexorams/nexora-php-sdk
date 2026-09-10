@@ -16,6 +16,11 @@ use Nexora\Sdk\Resources\Subscriptions;
 use Nexora\Sdk\Resources\Usage;
 use Nexora\Sdk\Resources\Users;
 use Nexora\Sdk\Resources\Webhooks;
+use Nexora\Sdk\Resources\School;
+use Nexora\Sdk\Resources\Hospital;
+use Nexora\Sdk\Resources\Hotel;
+use Nexora\Sdk\Resources\Pharmacy;
+use Nexora\Sdk\Resources\Company;
 use Nexora\Sdk\Webhooks\SignatureVerifier;
 
 /**
@@ -40,6 +45,11 @@ class Nexora
     private Webhooks $webhooks;
     private Deliveries $deliveries;
     private Usage $usage;
+    private School $school;
+    private Hospital $hospital;
+    private Hotel $hotel;
+    private Pharmacy $pharmacy;
+    private Company $company;
 
     /**
      * Initialize the Nexora client.
@@ -93,6 +103,13 @@ class Nexora
         $this->webhooks = new Webhooks($this->http);
         $this->deliveries = new Deliveries($this->http);
         $this->usage = new Usage($this->http);
+
+        // Sector-specific resources
+        $this->school = new School($this->http);
+        $this->hospital = new Hospital($this->http);
+        $this->hotel = new Hotel($this->http);
+        $this->pharmacy = new Pharmacy($this->http);
+        $this->company = new Company($this->http);
     }
 
     public function getEnvironment(): string
@@ -155,6 +172,31 @@ class Nexora
         return $this->usage;
     }
 
+    public function school(): School
+    {
+        return $this->school;
+    }
+
+    public function hospital(): Hospital
+    {
+        return $this->hospital;
+    }
+
+    public function hotel(): Hotel
+    {
+        return $this->hotel;
+    }
+
+    public function pharmacy(): Pharmacy
+    {
+        return $this->pharmacy;
+    }
+
+    public function company(): Company
+    {
+        return $this->company;
+    }
+
     /**
      * Magic property accessor to support both `$nexora->organizations` and `$nexora->organizations()`.
      */
@@ -170,6 +212,11 @@ class Nexora
             'webhooks' => $this->webhooks,
             'deliveries' => $this->deliveries,
             'usage' => $this->usage,
+            'school' => $this->school,
+            'hospital' => $this->hospital,
+            'hotel' => $this->hotel,
+            'pharmacy' => $this->pharmacy,
+            'company' => $this->company,
             'environment' => $this->environment,
             'baseUrl' => $this->baseUrl,
             default => null,
