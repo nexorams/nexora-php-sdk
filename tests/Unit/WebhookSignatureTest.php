@@ -43,7 +43,15 @@ final class WebhookSignatureTest extends TestCase
         $header = "v1={$sig}";
 
         $this->assertTrue(
-            Nexora::verifyWebhookSignature($this->payload, $header, $this->secret, 300)
+            Nexora::verifyWebhookSignature($this->payload, $header, $this->secret, 0)
+        );
+    }
+
+    public function testRejectsUntimestampedSignatureByDefault(): void
+    {
+        $sig = hash_hmac('sha256', $this->payload, $this->secret);
+        $this->assertFalse(
+            Nexora::verifyWebhookSignature($this->payload, "v1={$sig}", $this->secret)
         );
     }
 

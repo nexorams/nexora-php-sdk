@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexora\Sdk\Resources;
 
 use Nexora\Sdk\Http\HttpClient;
+use Nexora\Sdk\Http\RequestOptions;
 
 final class Domains
 {
@@ -39,7 +40,8 @@ final class Domains
         string $organizationId,
         string $hostname,
         bool $isPrimary = false,
-        array $extra = []
+        array $extra = [],
+        ?string $idempotencyKey = null
     ): array {
         $payload = array_merge([
             'hostname' => $hostname,
@@ -47,7 +49,11 @@ final class Domains
         ], $extra);
 
         /** @var array<string, mixed> */
-        return $this->client->post('/organizations/' . rawurlencode($organizationId) . '/domains', $payload);
+        return $this->client->post(
+            '/organizations/' . rawurlencode($organizationId) . '/domains',
+            $payload,
+            new RequestOptions(idempotencyKey: $idempotencyKey)
+        );
     }
 
     /**
@@ -58,12 +64,13 @@ final class Domains
      * @param string $domainId Domain record ID to verify
      * @return array<string, mixed>
      */
-    public function verify(string $organizationId, string $domainId): array
+    public function verify(string $organizationId, string $domainId, ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
         return $this->client->post(
             '/organizations/' . rawurlencode($organizationId) . '/domains/' . rawurlencode($domainId) . '/verify',
-            []
+            [],
+            new RequestOptions(idempotencyKey: $idempotencyKey)
         );
     }
 }

@@ -6,6 +6,8 @@ namespace Nexora\Sdk\Support;
 
 final class Version
 {
-    public const VERSION = '1.0.0';
-    public const USER_AGENT = 'nexorams-php/1.0.0';
+    // The released package version (git tag). Sent in the User-Agent and shown in
+    // Developer Portal request logs; update it with every release.
+    public const VERSION = '1.0.1';
+    public const USER_AGENT = 'nexorams-php/' . self::VERSION;
 }

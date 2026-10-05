@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexora\Sdk\Resources;
 
 use Nexora\Sdk\Http\HttpClient;
+use Nexora\Sdk\Http\RequestOptions;
 use Nexora\Sdk\Webhooks\SignatureVerifier;
 
 final class Webhooks
@@ -21,10 +22,10 @@ final class Webhooks
      * @param array<string, mixed> $data Webhook parameters: url, events, name, description
      * @return array<string, mixed>
      */
-    public function create(array $data): array
+    public function create(array $data, ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
-        return $this->client->post('/webhook-endpoints', $data);
+        return $this->client->post('/webhook-endpoints', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     /**
@@ -81,10 +82,10 @@ final class Webhooks
      * @param string $id Webhook endpoint ID
      * @return array<string, mixed>
      */
-    public function rotateSecret(string $id): array
+    public function rotateSecret(string $id, ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
-        return $this->client->post('/webhook-endpoints/' . rawurlencode($id) . '/rotate-secret', []);
+        return $this->client->post('/webhook-endpoints/' . rawurlencode($id) . '/rotate-secret', [], new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     /**
@@ -93,10 +94,10 @@ final class Webhooks
      * @param string $id Webhook endpoint ID
      * @return array<string, mixed>
      */
-    public function disable(string $id): array
+    public function disable(string $id, ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
-        return $this->client->post('/webhook-endpoints/' . rawurlencode($id) . '/disable', []);
+        return $this->client->post('/webhook-endpoints/' . rawurlencode($id) . '/disable', [], new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     /**
@@ -106,10 +107,10 @@ final class Webhooks
      * @param array<string, mixed> $params Optional eventType override
      * @return array<string, mixed>
      */
-    public function test(string $id, array $params = []): array
+    public function test(string $id, array $params = [], ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
-        return $this->client->post('/webhook-endpoints/' . rawurlencode($id) . '/test', $params);
+        return $this->client->post('/webhook-endpoints/' . rawurlencode($id) . '/test', $params, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     /**

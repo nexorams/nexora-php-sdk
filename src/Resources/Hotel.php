@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexora\Sdk\Resources;
 
 use Nexora\Sdk\Http\HttpClient;
+use Nexora\Sdk\Http\RequestOptions;
 
 /**
  * Hotel sector resource for the Nexora Developer API.
@@ -26,9 +27,9 @@ final class Hotel
         return $this->client->get('/hotel/reservations', $query);
     }
 
-    public function createReservation(array $data): array
+    public function createReservation(array $data, ?string $idempotencyKey = null): array
     {
-        return $this->client->post('/hotel/reservations', $data);
+        return $this->client->post('/hotel/reservations', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     public function listGuests(array $query = []): array

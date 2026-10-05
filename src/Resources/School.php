@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexora\Sdk\Resources;
 
 use Nexora\Sdk\Http\HttpClient;
+use Nexora\Sdk\Http\RequestOptions;
 
 /**
  * School sector resource for the Nexora Developer API.
@@ -35,9 +36,9 @@ final class School
      * @param array<string, mixed> $data Student attributes
      * @return array<string, mixed>
      */
-    public function createStudent(array $data): array
+    public function createStudent(array $data, ?string $idempotencyKey = null): array
     {
-        return $this->client->post('/school/students', $data);
+        return $this->client->post('/school/students', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     /**
@@ -57,14 +58,15 @@ final class School
      * @param array<string, mixed> $data Attendance data
      * @return array<string, mixed>
      */
-    public function recordAttendance(array $data): array
+    public function recordAttendance(array $data, ?string $idempotencyKey = null): array
     {
-        return $this->client->post('/school/attendance', $data);
+        return $this->client->post('/school/attendance', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 
     /**
      * List school classes.
      *
+     * @param array<string, mixed> $query Pagination parameters (page, limit)
      * @return array<string, mixed>
      */
     public function listClasses(array $query = []): array
@@ -78,8 +80,8 @@ final class School
      * @param array<string, mixed> $data Class attributes
      * @return array<string, mixed>
      */
-    public function createClass(array $data): array
+    public function createClass(array $data, ?string $idempotencyKey = null): array
     {
-        return $this->client->post('/school/classes', $data);
+        return $this->client->post('/school/classes', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 }

@@ -12,9 +12,8 @@ class SignatureVerifier
      * Cryptographically verifies an incoming webhook signature using HMAC-SHA256.
      * Matches the canonical Nexora backend WebhookSigningService algorithm.
      *
-     * Supports:
-     * 1. Standard Nexora format: "t=1700000000,v1=abcdef..."
-     * 2. Direct HMAC hash: "v1=abcdef..." or raw hex
+     * Replay-safe mode requires "t=1700000000,v1=abcdef...". Legacy direct
+     * HMAC hashes are accepted only when toleranceSeconds is explicitly 0.
      *
      * @param string $payload Raw request body string (do not decode and re-encode)
      * @param string $header The 'X-Nexora-Signature' or 'Nexora-Signature' header
@@ -59,11 +58,17 @@ class SignatureVerifier
             $signatureHash = trim($header);
         }
 
-        if ($signatureHash === null || $signatureHash === '') {
+        if ($signatureHash === null || strlen($signatureHash) !== 64 || !ctype_xdigit($signatureHash)) {
             return false;
         }
 
         // Verify timestamp window to protect against replay attacks
+        if ($toleranceSeconds < 0 || ($toleranceSeconds > 0 && $timestamp === null)) {
+            return false;
+        }
+        if ($timestamp !== null && $timestamp <= 0) {
+            return false;
+        }
         if ($timestamp !== null && $toleranceSeconds > 0) {
             $now = time();
             if (abs($now - $timestamp) > $toleranceSeconds) {
@@ -80,10 +85,12 @@ class SignatureVerifier
             }
         }
 
-        // 2. Direct fallback HMAC over raw payload without timestamp prefix
-        $directExpectedHash = hash_hmac('sha256', $payload, $secret);
-        if (hash_equals(strtolower($signatureHash), strtolower($directExpectedHash))) {
-            return true;
+        // 2. Explicit legacy mode: direct HMAC over the raw payload.
+        if ($timestamp === null && $toleranceSeconds === 0) {
+            $directExpectedHash = hash_hmac('sha256', $payload, $secret);
+            if (hash_equals(strtolower($signatureHash), strtolower($directExpectedHash))) {
+                return true;
+            }
         }
 
         return false;

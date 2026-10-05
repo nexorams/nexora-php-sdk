@@ -6,6 +6,11 @@ namespace Nexora\Sdk\Tests\Unit;
 
 use Nexora\Sdk\Exception\NexoraException;
 use Nexora\Sdk\Nexora;
+use Nexora\Sdk\Resources\Company;
+use Nexora\Sdk\Resources\Hospital;
+use Nexora\Sdk\Resources\Hotel;
+use Nexora\Sdk\Resources\Pharmacy;
+use Nexora\Sdk\Resources\School;
 use PHPUnit\Framework\TestCase;
 
 final class SecurityTest extends TestCase
@@ -57,5 +62,16 @@ final class SecurityTest extends TestCase
         $serialized = serialize($nexora);
 
         $this->assertStringNotContainsString($secretEntropy, $serialized);
+    }
+
+    public function testUnserializedClientRebuildsSectorResources(): void
+    {
+        $nexora = unserialize(serialize(new Nexora('nx_test_serialization_key_123')));
+
+        $this->assertInstanceOf(School::class, $nexora->school);
+        $this->assertInstanceOf(Hospital::class, $nexora->hospital);
+        $this->assertInstanceOf(Hotel::class, $nexora->hotel);
+        $this->assertInstanceOf(Pharmacy::class, $nexora->pharmacy);
+        $this->assertInstanceOf(Company::class, $nexora->company);
     }
 }

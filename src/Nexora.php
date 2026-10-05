@@ -292,5 +292,10 @@ class Nexora
         $this->webhooks = new Webhooks($this->http);
         $this->deliveries = new Deliveries($this->http);
         $this->usage = new Usage($this->http);
+        $this->school = new School($this->http);
+        $this->hospital = new Hospital($this->http);
+        $this->hotel = new Hotel($this->http);
+        $this->pharmacy = new Pharmacy($this->http);
+        $this->company = new Company($this->http);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexora\Sdk\Resources;
 
 use Nexora\Sdk\Http\HttpClient;
+use Nexora\Sdk\Http\RequestOptions;
 
 final class Deliveries
 {
@@ -54,9 +55,9 @@ final class Deliveries
      * @param string $id Delivery ID
      * @return array<string, mixed>
      */
-    public function retry(string $id): array
+    public function retry(string $id, ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
-        return $this->client->post('/webhook-deliveries/' . rawurlencode($id) . '/retry', []);
+        return $this->client->post('/webhook-deliveries/' . rawurlencode($id) . '/retry', [], new RequestOptions(idempotencyKey: $idempotencyKey));
     }
 }

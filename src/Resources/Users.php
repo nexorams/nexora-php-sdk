@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nexora\Sdk\Resources;
 
 use Nexora\Sdk\Http\HttpClient;
+use Nexora\Sdk\Http\RequestOptions;
 
 final class Users
 {
@@ -21,10 +22,14 @@ final class Users
      * @param array<string, mixed> $data User attributes: firstName, lastName, email, role, phone
      * @return array<string, mixed>
      */
-    public function create(string $organizationId, array $data): array
+    public function create(string $organizationId, array $data, ?string $idempotencyKey = null): array
     {
         /** @var array<string, mixed> */
-        return $this->client->post('/organizations/' . rawurlencode($organizationId) . '/users', $data);
+        return $this->client->post(
+            '/organizations/' . rawurlencode($organizationId) . '/users',
+            $data,
+            new RequestOptions(idempotencyKey: $idempotencyKey)
+        );
     }
 
     /**
@@ -32,11 +37,11 @@ final class Users
      *
      * @param string $organizationId Target organization ID
      * @param array<string, mixed> $query Filter parameters (role, page, limit)
-     * @return array<int, array<string, mixed>>
+     * @return array<string, mixed> Paginated result with data and pagination keys
      */
     public function list(string $organizationId, array $query = []): array
     {
-        /** @var array<int, array<string, mixed>> */
+        /** @var array<string, mixed> */
         return $this->client->get('/organizations/' . rawurlencode($organizationId) . '/users', $query);
     }
 }

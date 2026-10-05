@@ -319,16 +319,33 @@ final class ResourceTest extends TestCase
     public function testUsageSummaryAndGetProject(): void
     {
         $usageResponse = new Response(200, ['Content-Type' => 'application/json'], (string) json_encode([
-            'data' => ['totalRequests' => 450, 'successCount' => 445],
+            'data' => [
+                'period' => '2026-09',
+                'totalRequests' => 450,
+                'successCount' => 445,
+                'clientErrorCount' => 4,
+                'serverErrorCount' => 1,
+                'avgLatencyMs' => 90,
+                'quota' => ['limit' => 25000, 'used' => 450, 'remaining' => 24550, 'unlimited' => false],
+                'endpoints' => ['organizations' => 50, 'school' => 400],
+            ],
         ]));
         $projectResponse = new Response(200, ['Content-Type' => 'application/json'], (string) json_encode([
-            'data' => ['id' => 'proj_1', 'name' => 'Main Workspace', 'environment' => 'TEST'],
+            'data' => [
+                'id' => 'proj_1',
+                'name' => 'Main Workspace',
+                'slug' => 'main-workspace',
+                'status' => 'ACTIVE',
+                'environment' => 'TEST',
+                'organizationSector' => 'SCHOOL',
+            ],
         ]));
 
         $nexora = $this->createMockClient([$usageResponse, $projectResponse]);
 
         $usage = $nexora->usage()->summary(['period' => '2026-09']);
         $this->assertSame(450, $usage['totalRequests']);
+        $this->assertSame(24550, $usage['quota']['remaining']);
 
         $project = $nexora->usage()->getProject();
         $this->assertSame('Main Workspace', $project['name']);

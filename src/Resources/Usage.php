@@ -26,7 +26,7 @@ final class Usage
     }
 
     /**
-     * Retrieve authenticated developer project profile, environment, and tier quota limits.
+     * Retrieve authenticated developer project metadata, environment, status, and sector binding.
      *
      * @return array<string, mixed>
      */
