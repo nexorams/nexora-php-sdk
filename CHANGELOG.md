@@ -5,6 +5,35 @@ All notable changes to the `nexorams/sdk` PHP package will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-10-06
+
+This is a major release because webhook signature verification is stricter. See **Migrating from 1.x** below.
+
+### Breaking
+- **`SignatureVerifier::verify` / `Nexora::verifyWebhookSignature` require timestamped signatures by default.** With the default tolerance (300 seconds), only the `t=<unix>,v1=<hex>` format is accepted. Bare HMAC signatures (`v1=<hex>` or raw hex) are rejected unless `toleranceSeconds` is explicitly `0`. Signatures must be 64 hex characters, timestamps must be positive, and a negative tolerance always fails verification.
+
+### Added
+- Optional trailing `$idempotencyKey` argument on mutating calls: `users->create`, `webhooks->create`, `rotateSecret`, `disable`, `test`, `deliveries->retry`, `domains->create`, `domains->verify`, and the sector `create*`/`record*` methods (school, hospital, hotel, pharmacy, company). It is sent as the `Idempotency-Key` header.
+
+### Fixed
+- The `school`, `hospital`, `hotel`, `pharmacy` and `company` resources are now restored when a serialized `Nexora` client is unserialized.
+- The `User-Agent` header now reports the real package version (`nexorams-php/<version>`).
+
+### Changed
+- `users->list` is documented as returning the API's paginated shape (`data` and `pagination` keys). The SDK passes the response through unchanged.
+
+### Migrating from 1.x
+1. **Webhook verification.** Pass the full `X-Nexora-Signature` header (`t=...,v1=...`). If you still receive legacy signatures without a timestamp, verify them with a tolerance of `0`, which disables replay protection, and plan to drop that path:
+   ```php
+   Nexora::verifyWebhookSignature($payload, $header, $secret, 0);
+   ```
+2. **`users->list`.** Read users from `$result['data']`.
+
+## [1.0.1] - 2026-09-10
+
+### Added
+- Sector resources on the client: `school` (students, attendance, classes), `hospital` (patients, appointments, vitals), `hotel` (rooms, reservations), `pharmacy` (products) and `company` (employees, attendance, payroll).
+
 ## [1.0.0] - 2026-09-09
 
 ### Added
