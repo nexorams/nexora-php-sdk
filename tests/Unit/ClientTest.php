@@ -35,7 +35,7 @@ final class ClientTest extends TestCase
     public function testInvalidApiKeyPrefixThrowsValidationException(): void
     {
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage("Invalid API key prefix. Expected 'nx_test_' for sandbox or 'nx_live_' for live.");
+        $this->expectExceptionMessage("Invalid API key prefix. Expected 'nx_test_' for sandbox, 'nx_live_' for live, or 'nxi_' for a Marketplace installation token.");
         new Nexora('sk_invalid_prefix_12345');
     }
 
@@ -92,5 +92,19 @@ final class ClientTest extends TestCase
 
         $this->assertInstanceOf(Usage::class, $nexora->usage());
         $this->assertInstanceOf(Usage::class, $nexora->usage);
+    }
+
+    public function testInstallationTokenIsAcceptedAsLiveAndFlagged(): void
+    {
+        $client = new Nexora('nxi_' . str_repeat('a', 64));
+        $this->assertTrue($client->isInstallationToken());
+        $this->assertSame('live', $client->getEnvironment());
+        $this->assertFalse((new Nexora('nx_live_abc'))->isInstallationToken());
+    }
+
+    public function testUnknownPrefixIsStillRejected(): void
+    {
+        $this->expectException(ValidationException::class);
+        new Nexora('sk_live_abc');
     }
 }

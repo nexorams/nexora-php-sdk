@@ -130,10 +130,17 @@ class HttpClient
             $headers['Idempotency-Key'] = trim($options->idempotencyKey);
         }
 
+        // A Marketplace installation token (nxi_...) is bound to the organization that installed the app:
+        // never send an organization header with it (the server rejects a conflicting one).
+        $isInstallation = str_starts_with($this->apiKey, 'nxi_');
         foreach ($options->headers as $k => $v) {
-            if (strcasecmp($k, 'Authorization') !== 0) {
-                $headers[$k] = $v;
+            if (strcasecmp($k, 'Authorization') === 0) {
+                continue;
             }
+            if ($isInstallation && (strcasecmp($k, 'X-Organization-Id') === 0 || strcasecmp($k, 'X-Org-Id') === 0)) {
+                continue;
+            }
+            $headers[$k] = $v;
         }
 
         $guzzleOptions = [
