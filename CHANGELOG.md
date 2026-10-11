@@ -5,6 +5,11 @@ All notable changes to the `nexorams/sdk` PHP package will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Nexora Cloud generic, schema-driven resources: `$nexora->cloud()->installations()`, `->app($id)->schema()`, `->entity('members')->list()/listAll()/get()/create()/update()/archive()` and the shortcut `$nexora->resources('members')`. Entities are resolved dynamically (no per-application code). New constructor arguments `organizationId` (default `X-Organization-Id`) and `applicationId`; new scopes `cloud:read`, `cloud:write`, `cloud:delete`.
+
 ## [1.0.0] - 2026-09-09
 
 ### Added

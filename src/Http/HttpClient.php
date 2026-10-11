@@ -27,14 +27,17 @@ class HttpClient
     private string $baseUrl;
     private float $timeout;
     private ClientInterface $client;
+    private ?string $organizationId;
 
     public function __construct(
         string $apiKey,
         ?string $baseUrl = null,
         float $timeout = self::DEFAULT_TIMEOUT,
-        ?ClientInterface $client = null
+        ?ClientInterface $client = null,
+        ?string $organizationId = null
     ) {
         $this->apiKey = trim($apiKey);
+        $this->organizationId = $organizationId !== null && trim($organizationId) !== '' ? trim($organizationId) : null;
         $rawBaseUrl = $baseUrl ?: self::DEFAULT_BASE_URL;
         $this->baseUrl = rtrim($rawBaseUrl, '/');
         $this->timeout = $timeout;
@@ -128,6 +131,11 @@ class HttpClient
 
         if ($options->idempotencyKey !== null && trim($options->idempotencyKey) !== '') {
             $headers['Idempotency-Key'] = trim($options->idempotencyKey);
+        }
+
+        // Default tenant selector; an explicit per-call X-Organization-Id header wins (access is verified server-side).
+        if ($this->organizationId !== null) {
+            $headers['X-Organization-Id'] = $this->organizationId;
         }
 
         foreach ($options->headers as $k => $v) {
