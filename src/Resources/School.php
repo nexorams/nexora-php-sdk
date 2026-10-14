@@ -84,4 +84,37 @@ final class School
     {
         return $this->client->post('/school/classes', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
     }
+
+    /**
+     * List teachers (requires the teachers:read scope).
+     *
+     * @param array<string, mixed> $query page, limit
+     * @return array<string, mixed>
+     */
+    public function listTeachers(array $query = []): array
+    {
+        return $this->client->get('/school/teachers', $query);
+    }
+
+    /**
+     * List published results only (requires the results:read scope).
+     *
+     * @param array<string, mixed> $query page, limit, academicSession, term, studentId
+     * @return array<string, mixed>
+     */
+    public function listResults(array $query = []): array
+    {
+        return $this->client->get('/school/results', $query);
+    }
+
+    /**
+     * List school fee payments (requires the payments:read scope).
+     *
+     * @param array<string, mixed> $query page, limit, status, academicSession, term
+     * @return array<string, mixed>
+     */
+    public function listPayments(array $query = []): array
+    {
+        return $this->client->get('/school/payments', $query);
+    }
 }
