@@ -33,6 +33,7 @@ class Nexora
 {
     private string $apiKey;
     private string $environment;
+    private bool $isInstallationToken = false;
     private string $baseUrl;
     private HttpClient $http;
 
@@ -75,16 +76,20 @@ class Nexora
             );
         }
 
-        if (!str_starts_with($trimmedKey, 'nx_test_') && !str_starts_with($trimmedKey, 'nx_live_')) {
+        // Marketplace apps authenticate with an installation token (nxi_...) issued to ONE organization
+        // when an admin installs the app. It is a different credential from a project API key.
+        $isInstallationToken = str_starts_with($trimmedKey, 'nxi_');
+        if (!$isInstallationToken && !str_starts_with($trimmedKey, 'nx_test_') && !str_starts_with($trimmedKey, 'nx_live_')) {
             throw new ValidationException(
-                message: "Invalid API key prefix. Expected 'nx_test_' for sandbox or 'nx_live_' for live.",
+                message: "Invalid API key prefix. Expected 'nx_test_' for sandbox, 'nx_live_' for live, or 'nxi_' for a Marketplace installation token.",
                 errorCode: 'INVALID_API_KEY_FORMAT',
                 statusCode: 400
             );
         }
 
         $this->apiKey = $trimmedKey;
-        $this->environment = str_starts_with($trimmedKey, 'nx_live_') ? 'live' : 'sandbox';
+        $this->isInstallationToken = $isInstallationToken;
+        $this->environment = str_starts_with($trimmedKey, 'nx_test_') ? 'sandbox' : 'live';
         $this->baseUrl = rtrim($baseUrl ?: HttpClient::DEFAULT_BASE_URL, '/');
 
         $this->http = new HttpClient(
@@ -115,6 +120,12 @@ class Nexora
     public function getEnvironment(): string
     {
         return $this->environment;
+    }
+
+    /** True when authenticated as a Marketplace app installation (organization-scoped, permission-granted). */
+    public function isInstallationToken(): bool
+    {
+        return $this->isInstallationToken;
     }
 
     public function getBaseUrl(): string

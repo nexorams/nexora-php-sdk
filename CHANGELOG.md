@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Support for Marketplace **installation tokens** (`nxi_…`). They are organization-bound credentials issued when an organization admin installs your Marketplace app; the SDK treats them as live, exposes `isInstallationToken()`, never sends `X-Organization-Id` with them. Project API keys behave exactly as before.
 - `School::listTeachers()`, `listResults()` (published only), `listPayments()`; new scopes `teachers:read`, `results:read`, `payments:read`.
 
 ## [2.0.0] - 2026-10-06
