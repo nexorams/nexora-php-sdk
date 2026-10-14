@@ -27,14 +27,17 @@ class HttpClient
     private string $baseUrl;
     private float $timeout;
     private ClientInterface $client;
+    private ?string $organizationId;
 
     public function __construct(
         string $apiKey,
         ?string $baseUrl = null,
         float $timeout = self::DEFAULT_TIMEOUT,
-        ?ClientInterface $client = null
+        ?ClientInterface $client = null,
+        ?string $organizationId = null
     ) {
         $this->apiKey = trim($apiKey);
+        $this->organizationId = $organizationId !== null && trim($organizationId) !== '' ? trim($organizationId) : null;
         $rawBaseUrl = $baseUrl ?: self::DEFAULT_BASE_URL;
         $this->baseUrl = rtrim($rawBaseUrl, '/');
         $this->timeout = $timeout;
@@ -133,6 +136,11 @@ class HttpClient
         // A Marketplace installation token (nxi_...) is bound to the organization that installed the app:
         // never send an organization header with it (the server rejects a conflicting one).
         $isInstallation = str_starts_with($this->apiKey, 'nxi_');
+        // Default tenant selector; an explicit per-call X-Organization-Id header wins (access is verified server-side).
+        if ($this->organizationId !== null && !$isInstallation) {
+            $headers['X-Organization-Id'] = $this->organizationId;
+        }
+
         foreach ($options->headers as $k => $v) {
             if (strcasecmp($k, 'Authorization') === 0) {
                 continue;

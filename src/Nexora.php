@@ -20,6 +20,8 @@ use Nexora\Sdk\Resources\School;
 use Nexora\Sdk\Resources\Hospital;
 use Nexora\Sdk\Resources\Hotel;
 use Nexora\Sdk\Resources\Pharmacy;
+use Nexora\Sdk\Resources\Cloud;
+use Nexora\Sdk\Resources\CloudEntity;
 use Nexora\Sdk\Resources\Company;
 use Nexora\Sdk\Webhooks\SignatureVerifier;
 
@@ -51,6 +53,7 @@ class Nexora
     private Hotel $hotel;
     private Pharmacy $pharmacy;
     private Company $company;
+    private Cloud $cloud;
 
     /**
      * Initialize the Nexora client.
@@ -65,7 +68,9 @@ class Nexora
         string $apiKey,
         ?string $baseUrl = null,
         float $timeout = HttpClient::DEFAULT_TIMEOUT,
-        ?ClientInterface $httpClient = null
+        ?ClientInterface $httpClient = null,
+        ?string $organizationId = null,
+        ?string $applicationId = null
     ) {
         $trimmedKey = trim($apiKey);
         if ($trimmedKey === '') {
@@ -96,7 +101,8 @@ class Nexora
             apiKey: $this->apiKey,
             baseUrl: $this->baseUrl,
             timeout: $timeout,
-            client: $httpClient
+            client: $httpClient,
+            organizationId: $organizationId
         );
 
         $this->organizations = new Organizations($this->http);
@@ -115,6 +121,7 @@ class Nexora
         $this->hotel = new Hotel($this->http);
         $this->pharmacy = new Pharmacy($this->http);
         $this->company = new Company($this->http);
+        $this->cloud = new Cloud($this->http, $applicationId);
     }
 
     public function getEnvironment(): string
@@ -208,6 +215,20 @@ class Nexora
         return $this->company;
     }
 
+    public function cloud(): Cloud
+    {
+        return $this->cloud;
+    }
+
+    /**
+     * Generic dynamic resource: `$nexora->resources('members')->list()` on the default Cloud application
+     * (the `applicationId` constructor argument) or an explicit one.
+     */
+    public function resources(string $entityKey, ?string $applicationId = null): CloudEntity
+    {
+        return $this->cloud->entity($entityKey, $applicationId);
+    }
+
     /**
      * Magic property accessor to support both `$nexora->organizations` and `$nexora->organizations()`.
      */
@@ -228,6 +249,7 @@ class Nexora
             'hotel' => $this->hotel,
             'pharmacy' => $this->pharmacy,
             'company' => $this->company,
+            'cloud' => $this->cloud,
             'environment' => $this->environment,
             'baseUrl' => $this->baseUrl,
             default => null,

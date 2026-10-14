@@ -308,6 +308,28 @@ $project = $nexora->usage()->getProject();
 
 ---
 
+## Nexora Cloud (custom management systems)
+
+Organizations install Nexora Cloud applications and explicitly grant your developer project access to specific
+entities and actions. Your API key needs `cloud:read`, `cloud:write` and/or `cloud:delete`; the effective
+permissions are the intersection of the organization's grants and your key's scopes.
+
+```php
+$nexora = new Nexora(apiKey: getenv('NEXORA_API_KEY'), organizationId: 'org_...', applicationId: '...');
+
+$schema = $nexora->cloud()->schema();                        // entities and fields you may use
+$page = $nexora->resources('members')->list(['limit' => 20]);
+foreach ($nexora->resources('members')->listAll() as $member) { /* ... */ }
+
+$created = $nexora->resources('members')->create(['first_name' => 'Ada'], [], 'signup-123');
+$nexora->resources('members')->update($created['id'], ['plan' => 'gold']);
+$nexora->resources('members')->archive($created['id']);      // soft delete; data is never hard-deleted
+
+$nexora->resources('members')->events()['created'];          // 'cloud.members.created' (webhook event)
+```
+
+Sensitive fields are never returned or writable through the API. TEST keys can use your own application's sandbox.
+
 ## Error Handling
 
 The SDK provides a clean exception hierarchy mapping directly to server response codes. All exceptions expose correlation `requestId`, `statusCode`, and `errorCode`:
