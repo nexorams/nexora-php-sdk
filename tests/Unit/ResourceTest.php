@@ -40,6 +40,36 @@ final class ResourceTest extends TestCase
         return end($this->history)['request'];
     }
 
+    // ── Parent Portal (school) ───────────────────────────────────────────────
+
+    public function testSchoolParentsCreateLinkAndRevoke(): void
+    {
+        $nexora = $this->createMockClient([
+            new Response(201, ['Content-Type' => 'application/json'], (string) json_encode(['data' => ['id' => 'par_1', 'parentId' => 'BFA-PAR-0001', 'activation' => 'pending', 'created' => true]])),
+            new Response(200, ['Content-Type' => 'application/json'], (string) json_encode(['data' => [['id' => 'lnk_1', 'parentId' => 'par_1', 'studentId' => 'stu_1', 'status' => 'ACTIVE']], 'pagination' => ['page' => 1, 'limit' => 20, 'total' => 1, 'totalPages' => 1]])),
+            new Response(200, ['Content-Type' => 'application/json'], (string) json_encode(['data' => ['id' => 'lnk_1', 'status' => 'REVOKED']])),
+        ]);
+
+        $created = $nexora->school()->createParent(['firstName' => 'Bola', 'lastName' => 'Adeyemi', 'email' => 'bola@example.com', 'phone' => '+2348011112222', 'students' => [['studentId' => 'stu_1', 'relationship' => 'father']]], 'parent-key-1');
+        $req = $this->getLastRequest();
+        $this->assertSame('POST', $req->getMethod());
+        $this->assertSame('/developer/v1/school/parents', $req->getUri()->getPath());
+        $this->assertSame('parent-key-1', $req->getHeaderLine('Idempotency-Key'));
+        $this->assertSame('BFA-PAR-0001', $created['parentId']);
+        $this->assertArrayNotHasKey('tempPassword', $created);
+
+        $links = $nexora->school()->listParentLinks(['parentId' => 'par_1']);
+        $req = $this->getLastRequest();
+        $this->assertSame('/developer/v1/school/parents/links', $req->getUri()->getPath());
+        $this->assertStringContainsString('parentId=par_1', $req->getUri()->getQuery());
+        $this->assertSame('ACTIVE', $links['data'][0]['status']);
+
+        $revoked = $nexora->school()->revokeParentLink(['linkId' => 'lnk_1', 'reason' => 'Custody change']);
+        $req = $this->getLastRequest();
+        $this->assertSame('/developer/v1/school/parents/links/revoke', $req->getUri()->getPath());
+        $this->assertSame('REVOKED', $revoked['status']);
+    }
+
     // ── Organizations Tests ──────────────────────────────────────────────────
 
     public function testOrganizationsCreateSendsIdempotencyKeyAndBearer(): void

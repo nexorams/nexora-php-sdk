@@ -34,6 +34,38 @@ final class ErrorMappingTest extends TestCase
         );
     }
 
+    public function testCarriesTheServerAliasNextToTheUnchangedCode(): void
+    {
+        $nexora = $this->createMockClient([
+            new Response(403, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => ['code' => 'PERMISSION_NOT_GRANTED', 'alias' => 'SCOPE_NOT_GRANTED', 'message' => 'not granted', 'requestId' => 'req_alias_1'],
+            ])),
+            new Response(403, ['Content-Type' => 'application/json'], (string) json_encode([
+                'error' => ['code' => 'APP_SUSPENDED', 'message' => 'suspended', 'requestId' => 'req_alias_2'],
+            ])),
+        ]);
+
+        try {
+            $nexora->modules()->list();
+            $this->fail('Expected PermissionException was not thrown');
+        } catch (PermissionException $e) {
+            $this->assertSame('PERMISSION_NOT_GRANTED', $e->getErrorCode());
+            $this->assertSame('SCOPE_NOT_GRANTED', $e->getAlias());
+            $this->assertTrue($e->is('SCOPE_NOT_GRANTED'));
+            $this->assertTrue($e->is('PERMISSION_NOT_GRANTED'));
+            $this->assertFalse($e->is('TOKEN_EXPIRED'));
+            $this->assertSame('SCOPE_NOT_GRANTED', $e->toArray()['alias']);
+        }
+
+        try {
+            $nexora->modules()->list();
+            $this->fail('Expected PermissionException was not thrown');
+        } catch (PermissionException $e) {
+            $this->assertNull($e->getAlias());
+            $this->assertTrue($e->is('APP_SUSPENDED'));
+        }
+    }
+
     public function testMaps401ToAuthenticationExceptionWithRequestId(): void
     {
         $mockResponse = new Response(

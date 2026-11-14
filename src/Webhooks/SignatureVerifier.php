@@ -32,7 +32,8 @@ class SignatureVerifier
         }
 
         $timestamp = null;
-        $signatureHash = null;
+        // a header may carry several signatures (during a secret rotation grace window); the delivery is authentic if ANY of them matches
+        $signatureHashes = [];
 
         if (str_contains($header, 't=') && str_contains($header, 'v1=')) {
             $parts = explode(',', $header);
@@ -48,17 +49,18 @@ class SignatureVerifier
                         }
                         $timestamp = (int) $v;
                     } elseif ($k === 'v1') {
-                        $signatureHash = $v;
+                        $signatureHashes[] = $v;
                     }
                 }
             }
         } elseif (str_starts_with($header, 'v1=')) {
-            $signatureHash = trim(substr($header, 3));
+            $signatureHashes[] = trim(substr($header, 3));
         } else {
-            $signatureHash = trim($header);
+            $signatureHashes[] = trim($header);
         }
 
-        if ($signatureHash === null || strlen($signatureHash) !== 64 || !ctype_xdigit($signatureHash)) {
+        $candidates = array_values(array_filter($signatureHashes, static fn ($h) => strlen($h) === 64 && ctype_xdigit($h)));
+        if ($candidates === []) {
             return false;
         }
 
@@ -80,16 +82,20 @@ class SignatureVerifier
         if ($timestamp !== null) {
             $signedPayload = "{$timestamp}.{$payload}";
             $expectedHash = hash_hmac('sha256', $signedPayload, $secret);
-            if (hash_equals(strtolower($signatureHash), strtolower($expectedHash))) {
-                return true;
+            foreach ($candidates as $candidate) {
+                if (hash_equals(strtolower($candidate), strtolower($expectedHash))) {
+                    return true;
+                }
             }
         }
 
         // 2. Explicit legacy mode: direct HMAC over the raw payload.
         if ($timestamp === null && $toleranceSeconds === 0) {
             $directExpectedHash = hash_hmac('sha256', $payload, $secret);
-            if (hash_equals(strtolower($signatureHash), strtolower($directExpectedHash))) {
-                return true;
+            foreach ($candidates as $candidate) {
+                if (hash_equals(strtolower($candidate), strtolower($directExpectedHash))) {
+                    return true;
+                }
             }
         }
 

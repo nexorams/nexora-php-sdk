@@ -5,6 +5,13 @@ All notable changes to the `nexorams/sdk` PHP package will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+- Parent Portal for schools: `School::listParents()`, `createParent()`, `listParentLinks()`, `linkParentStudent()`, `revokeParentLink()` (`/school/parents`, `/school/parents/links`, `/school/parents/links/revoke`; scopes `parents:read` / `parents:write`). Creating a parent never returns a password; Nexora e-mails the activation link. Webhook events `school.parent.created`, `school.parent.linked`, `school.parent.unlinked`.
+- `NexoraSdkMarketplaceMarketplaceAuth` and `TokenSet` for apps hosted outside Nexora: `exchangeCode`, `refresh`, `introspect`, `revoke` (server side only).
+- `NexoraException::getAlias()`, `withAlias()` and `is()`: the specification name for the same condition when the server sends one (`getErrorCode()` never changes).
+
 ## [Unreleased]
 
 ## [2.1.0] - 2026-10-14

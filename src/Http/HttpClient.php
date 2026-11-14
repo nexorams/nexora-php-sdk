@@ -189,6 +189,7 @@ class HttpClient
             $errorCode = $errData['code'] ?? ($errorPayload['code'] ?? ('HTTP_' . $statusCode));
             $requestId = $errData['requestId'] ?? ($errorPayload['requestId'] ?? $requestId);
             $details = $errData['details'] ?? $errorPayload;
+            $alias = isset($errData['alias']) && is_string($errData['alias']) ? $errData['alias'] : null;
 
             $this->throwStructuredException(
                 statusCode: $statusCode,
@@ -197,7 +198,8 @@ class HttpClient
                 requestId: $requestId ? (string) $requestId : null,
                 details: $details,
                 retryAfter: $retryAfter,
-                previous: $e
+                previous: $e,
+                alias: $alias
             );
         } catch (ConnectException $e) {
             throw new NetworkException(
@@ -228,15 +230,16 @@ class HttpClient
         ?string $requestId,
         mixed $details,
         ?int $retryAfter,
-        \Throwable $previous
+        \Throwable $previous,
+        ?string $alias = null
     ): never {
-        throw match ($statusCode) {
+        throw (match ($statusCode) {
             401 => new AuthenticationException($message, $errorCode, $statusCode, $requestId, $details, $previous),
             403 => new PermissionException($message, $errorCode, $statusCode, $requestId, $details, $previous),
             400, 422 => new ValidationException($message, $errorCode, $statusCode, $requestId, $details, $previous),
             429 => new RateLimitException($message, $errorCode, $statusCode, $requestId, $details, $retryAfter, $previous),
             default => new NexoraException($message, $errorCode, $statusCode, $requestId, $details, $previous),
-        };
+        })->withAlias($alias);
     }
 
     /**

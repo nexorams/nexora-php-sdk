@@ -117,4 +117,60 @@ final class School
     {
         return $this->client->get('/school/payments', $query);
     }
+    /**
+     * List Parent Portal accounts (requires the parents:read scope).
+     *
+     * @param array<string, mixed> $query page, limit, search, status (active|disabled), activation (pending|activated|expired)
+     * @return array<string, mixed>
+     */
+    public function listParents(array $query = []): array
+    {
+        return $this->client->get('/school/parents', $query);
+    }
+
+    /**
+     * Create a parent/guardian account and optionally link children (requires parents:write).
+     * Nexora e-mails the activation link; no password is returned. A known e-mail answers 409 PARENT_EXISTS
+     * unless `reuseExisting` is true, in which case the students are linked to the existing account.
+     *
+     * @param array<string, mixed> $data firstName, lastName, email, phone, students[] {studentId, relationship, isPrimaryGuardian}, reuseExisting
+     * @return array<string, mixed>
+     */
+    public function createParent(array $data, ?string $idempotencyKey = null): array
+    {
+        return $this->client->post('/school/parents', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
+    }
+
+    /**
+     * List parent-student links (requires parents:read).
+     *
+     * @param array<string, mixed> $query page, limit, parentId, studentId, status (ACTIVE|REVOKED)
+     * @return array<string, mixed>
+     */
+    public function listParentLinks(array $query = []): array
+    {
+        return $this->client->get('/school/parents/links', $query);
+    }
+
+    /**
+     * Link a student to a parent (requires parents:write).
+     *
+     * @param array<string, mixed> $data parentId, studentId, relationship (mother|father|guardian|other), isPrimaryGuardian, isEmergencyContact
+     * @return array<string, mixed>
+     */
+    public function linkParentStudent(array $data, ?string $idempotencyKey = null): array
+    {
+        return $this->client->post('/school/parents/links', $data, new RequestOptions(idempotencyKey: $idempotencyKey));
+    }
+
+    /**
+     * Revoke a parent-student link by linkId, or by parentId + studentId; the parent loses access at once (requires parents:write).
+     *
+     * @param array<string, mixed> $data linkId | (parentId, studentId), reason
+     * @return array<string, mixed>
+     */
+    public function revokeParentLink(array $data): array
+    {
+        return $this->client->post('/school/parents/links/revoke', $data);
+    }
 }

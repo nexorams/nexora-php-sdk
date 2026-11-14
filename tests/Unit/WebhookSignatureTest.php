@@ -22,6 +22,21 @@ final class WebhookSignatureTest extends TestCase
         ], JSON_THROW_ON_ERROR);
     }
 
+    public function testHeaderWithTwoSignaturesVerifiesWithEitherSecretDuringARotationGraceWindow(): void
+    {
+        $now = time();
+        $sig = static fn (string $secret, string $payload, int $t) => hash_hmac('sha256', "{$t}.{$payload}", $secret);
+        $header = "t={$now},v1=" . $sig('whsec_old', $this->payload, $now) . ',v1=' . $sig('whsec_new', $this->payload, $now);
+        $this->assertTrue(SignatureVerifier::verify($this->payload, $header, 'whsec_old'));
+        $this->assertTrue(SignatureVerifier::verify($this->payload, $header, 'whsec_new'));
+        $this->assertFalse(SignatureVerifier::verify($this->payload, $header, 'whsec_other'));
+        $this->assertTrue(SignatureVerifier::verify($this->payload, "t={$now},v1=zz,v1=" . str_repeat('0', 64) . ',v1=' . $sig('whsec_new', $this->payload, $now), 'whsec_new'));
+        $this->assertFalse(SignatureVerifier::verify($this->payload . ' ', $header, 'whsec_new'));
+        $old = $now - 4000;
+        $this->assertFalse(SignatureVerifier::verify($this->payload, "t={$old},v1=" . $sig('whsec_new', $this->payload, $old) . ',v1=' . str_repeat('0', 64), 'whsec_new'));
+        $this->assertFalse(SignatureVerifier::verify($this->payload, "t={$now},v1=zz,v1=", 'whsec_new'));
+    }
+
     public function testVerifiesValidStandardHeader(): void
     {
         $now = time();

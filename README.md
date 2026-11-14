@@ -519,3 +519,20 @@ class NexoraWebhookController extends Controller
 
 The Nexora PHP SDK is open-sourced software licensed under the [MIT license](LICENSE).
 # nexora-php-sdk
+
+## Parent Portal (schools)
+
+Requires the `parents:read` / `parents:write` scopes. Creating a parent never returns a password: Nexora e-mails the parent a one-time activation link.
+
+```php
+$parent = $nexora->school()->createParent([
+    'firstName' => 'Bola', 'lastName' => 'Adeyemi', 'email' => 'bola@example.com', 'phone' => '+2348011112222',
+    'students' => [['studentId' => 'BFA-STU-0001', 'relationship' => 'father', 'isPrimaryGuardian' => true]],
+]);
+$nexora->school()->linkParentStudent(['parentId' => $parent['id'], 'studentId' => 'BFA-STU-0002', 'relationship' => 'father']);
+$links = $nexora->school()->listParentLinks(['parentId' => $parent['id']]);
+$nexora->school()->revokeParentLink(['linkId' => $links['data'][0]['id'], 'reason' => 'Custody change']);
+```
+
+Webhook events: `school.parent.created`, `school.parent.linked`, `school.parent.unlinked`.
+
